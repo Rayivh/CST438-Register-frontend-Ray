@@ -31,16 +31,7 @@ class AddStudent extends Component {
         this.setState({student:{name: this.state.student.name, email: event.target.value}});
     }
     handleAdd = () => {
-        //console.log("Accessing Student: " + JSON.stringify({name: this.state.name, email: this.state.email}));
-        console.log("Accessing Student: " + JSON.stringify({student:{name: this.state.student.name, email: this.state.student.email}}));
-
-        const token = Cookies.get('XSRF-TOKEN');
-        fetch(`${SERVER_URL}student`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token  },
-                body: JSON.stringify({student:{name: this.state.student.name, email: this.state.student.email}})
-            });
+        //console.log("Accessing Student: " + JSON.stringify({student:{name: this.state.student.name, email: this.state.student.email}}));
         this.props.addStudent(this.state.student)
         this.handleClose();
     }

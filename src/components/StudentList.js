@@ -8,42 +8,31 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import AddCourse from "./AddCourse";
 import {DataGrid} from "@mui/x-data-grid";
-import SchedList from "./SchedList";
 import AddStudent from './AddStudent';
+
 class StudentList extends Component {
     constructor(props) {
         super(props);
         this.state = { students: [] };
     }
-
     componentDidMount() {
-        // To-Do: Configure backend to handle a general GET for all logged students
         this.fetchStudents();
     }
     fetchStudents = () => {
-        console.log("StudentList.fetchStudents");
+        console.log("Fetching list of students");
+        
         const token = Cookies.get('XSRF-TOKEN');
-
         fetch(`${SERVER_URL}students`,
             {
                 method: 'GET',
                 headers: { 'X-XSRF-TOKEN': token }
             } )
             .then((response) => {
-                console.log("FETCH RESP:"+response);
-                console.log("Response Status Code: " + response.status);
+                console.log("Response Code: " + response.status);
                 
                 return response.json();})
             .then((responseData) => {
-                
-                console.log("Testing Response Type");
-                console.log(responseData);
-                
-                if(Array.isArray(responseData)){
-                    console.log("responseData is an array");
-                }
 
                 // do a sanity check on response
                 if (Array.isArray(responseData)) {
@@ -64,25 +53,33 @@ class StudentList extends Component {
             })
     }
 
-    onDelClick = (student) => {
-        console.log("Deleting Student" + student);
-        
+    onDelClick = (id) => {
+        console.log("Warning: Delete Student: " + id + "?");
         if (window.confirm('Are you sure you want to drop this student?')) {
+            console.log("Deleting...");
+            let students = this.state.students;
+            let studentPending;
+            for (let student in students){
+                if(students[student]["student_id"] === id){
+                    studentPending = {"email":students[student]["email"],"name":students[student]["name"]};
+                    break;
+                }
+            }
+            
             const token = Cookies.get('XSRF-TOKEN');
-
             fetch(`${SERVER_URL}student`,
                 {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json',
                         'X-XSRF-TOKEN': token  },
-                    body: JSON.stringify(student)
+                    body: JSON.stringify(studentPending)
                 })
                 .then(res => {
                     if (res.ok) {
                         toast.success("Student successfully dropped", {
                             position: toast.POSITION.BOTTOM_LEFT
                         });
-                        this.fetchCourses();
+                        this.fetchStudents();
                     } else {
                         toast.error("Student drop failed", {
                             position: toast.POSITION.BOTTOM_LEFT
@@ -98,11 +95,9 @@ class StudentList extends Component {
         }
     }
     addStudent = (student) => {
-        const token = Cookies.get('XSRF-TOKEN');
-
-        console.log("POST requesting to add student: ");
-        console.log(student);
+        console.log("Adding student... name:" + student["name"] + " email:" + student["email"]);
         
+        const token = Cookies.get('XSRF-TOKEN');
         fetch(`${SERVER_URL}student`,
             {
                 method: 'POST',
@@ -130,27 +125,33 @@ class StudentList extends Component {
             })
     }
     render() {
+        let students = this.state.students;
+        for (let student in students){
+            // Add extra field for DataGrid to bind a button
+            students[student]["id"] = students[student]["student_id"];
+        }
+        
         const columns = [
-            { field: 'name', headerName: 'Name', width: 400 },
-            { field: 'email', headerName: 'Email', width: 125 },
+            { field: 'student_id', headerName: 'ID', width: 100},
+            { field: 'name', headerName: 'Name', width: 200 },
+            { field: 'email', headerName: 'Email', width: 200 },
             { field: 'statusCode', headerName: 'Status Code', width: 125 },
             { field: 'status', headerName: 'Status', width: 125 },
             {
                 field: 'id',
-                headerName: '  ',
+                headerName: 'Actions',
                 sortable: false,
                 width: 200,
-                //To-Do: add grid-cell button to delete entry (Finish fetch first)
                 renderCell: (params) => (
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        size="small"
-                        style={{ marginLeft: 16 }}
-                        onClick={()=>{this.onDelClick(params.value)}}
-                    >
-                        Drop
-                    </Button>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            size="small"
+                            style={{ marginLeft: 16 }}
+                            onClick={()=>{this.onDelClick(params.value)}}
+                        >
+                            Drop
+                        </Button>
                 )
             }
         ];
