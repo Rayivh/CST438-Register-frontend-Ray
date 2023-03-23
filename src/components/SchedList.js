@@ -35,18 +35,22 @@ class SchedList extends Component {
     console.log("SchedList.fetchCourses");
     const token = Cookies.get('XSRF-TOKEN');
     
-    fetch(`${SERVER_URL}/schedule?year=${this.props.location.year}&semester=${this.props.location.semester}`, 
+    fetch(`${SERVER_URL}schedule?year=${this.props.location.year}&semester=${this.props.location.semester}`, 
       {  
         method: 'GET', 
         headers: { 'X-XSRF-TOKEN': token }
       } )
     .then((response) => {
       console.log("FETCH RESP:"+response);
+      
       return response.json();}) 
     .then((responseData) => { 
       // do a sanity check on response
       if (Array.isArray(responseData.courses)) {
-        this.setState({ 
+
+          //console.log("Data:"+responseData.courses);
+          
+        this.setState({
           courses: responseData.courses,
         });
       } else {
@@ -68,7 +72,7 @@ class SchedList extends Component {
     if (window.confirm('Are you sure you want to drop the course?')) {
       const token = Cookies.get('XSRF-TOKEN');
       
-      fetch(`${SERVER_URL}/schedule/${id}`,
+      fetch(`${SERVER_URL}schedule/${id}`,
         {
           method: 'DELETE',
           headers: { 'X-XSRF-TOKEN': token }
@@ -123,9 +127,9 @@ class SchedList extends Component {
         });
         console.error(err);
     })
-  } 
+  }
 
-  render() {
+    render() {
      const columns = [
       { field: 'title', headerName: 'Title', width: 400 },
       { field: 'section', headerName: 'Section', width: 125 },
